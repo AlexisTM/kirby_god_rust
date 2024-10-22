@@ -74,7 +74,7 @@ impl EventHandler for Handler {
 
     async fn message(&self, ctx: Context, msg: Message) {
         // This is only used for private messages
-        if !msg.is_private() {
+        if msg.guild_id == None {
             return;
         }
 
