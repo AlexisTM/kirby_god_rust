@@ -48,7 +48,6 @@ impl Default for PersonaConfig {
     }
 }
 
-// trait Bot, for God
 #[derive(Debug)]
 pub struct Persona {
     pub brain: OllamaAI,

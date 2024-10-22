@@ -25,22 +25,22 @@ fn get_name<T>(_: T) -> String {
     std::any::type_name::<T>().to_string()
 }
 
-async fn get_or_create_bot(ctx: &Context, key: u64) -> Arc<RwLock<Persona>> {
+async fn get_or_create_persona(ctx: &Context, key: u64) -> Arc<RwLock<Persona>> {
     let data = ctx.data.read().await;
     let nursery = data
         .get::<Nursery>()
         .expect("There should be a nursery here.");
 
-    let default_god = data
+    let default_persona = data
         .get::<PersonaConfig>()
         .expect("There should be a default config in the context.");
 
     let has_bot = nursery.read().await.contains_key(&key);
 
     if !has_bot {
-        let new_god = Persona::from_config(default_god.clone());
+        let new_persona = Persona::from_config(default_persona.clone());
         let mut write_nursery = nursery.write().await;
-        write_nursery.insert(key, Arc::new(RwLock::new(new_god)));
+        write_nursery.insert(key, Arc::new(RwLock::new(new_persona)));
     }
 
     let bot = {
@@ -56,14 +56,14 @@ impl EventHandler for Handler {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(command) = interaction {
             let key = command.channel_id;
-            let god = get_or_create_bot(&ctx, key.into()).await;
-            let botname = god.read().await.get_botname();
+            let persona = get_or_create_persona(&ctx, key.into()).await;
+            let botname = persona.read().await.get_botname();
 
             match command.data.name.as_str() {
-                "clear" => commands::clear::run(&ctx, &command, god).await,
+                "clear" => commands::clear::run(&ctx, &command, persona).await,
                 data => {
                     if data == botname.to_lowercase() {
-                        commands::chat::run(&ctx, &command, god).await
+                        commands::chat::run(&ctx, &command, persona).await
                     } else {
                         println!("not implemented :(")
                     }
@@ -93,17 +93,17 @@ impl EventHandler for Handler {
 
         let prompt_slice = &msg.content[..];
         let author_name = msg.author.name.clone();
-        let god = get_or_create_bot(&ctx, key.into()).await;
+        let persona = get_or_create_persona(&ctx, key.into()).await;
 
-        let prompt = { god.read().await.get_prompt(&author_name, prompt_slice) };
+        let prompt = { persona.read().await.get_prompt(&author_name, prompt_slice) };
 
-        let response = { god.read().await.brain.request(&prompt).await };
+        let response = { persona.read().await.brain.request(&prompt).await };
         if let Some(response) = response {
             if let Err(why) = msg.channel_id.say(&ctx.http, &response.content).await {
                 println!("Error sending message: {:?}", why);
             }
             {
-                god.write().await.set_prompt_response(
+                persona.write().await.set_prompt_response(
                     &author_name,
                     prompt_slice,
                     &response.content,
@@ -121,7 +121,7 @@ impl EventHandler for Handler {
         let data = ctx.data.read().await;
         let config = data
             .get::<PersonaConfig>()
-            .expect("There should be god configuration.");
+            .expect("There should be persona configuration.");
 
         let guild_commands = ctx
             .http
@@ -140,7 +140,7 @@ impl EventHandler for Handler {
 
 #[derive(Parser)]
 struct Cli {
-    pub god: std::path::PathBuf,
+    pub persona: std::path::PathBuf,
 }
 
 #[tokio::main]
@@ -151,18 +151,18 @@ async fn main() {
 
     let args = Cli::parse();
 
-    println!("Reading: {:?}", args.god);
+    println!("Reading: {:?}", args.persona);
 
-    let god_data: String = fs::read_to_string(&args.god)
-        .unwrap_or_else(|_| panic!("The god {:?} file must be readable.", &args.god));
-    let config = match serde_json::from_str::<PersonaConfig>(&god_data) {
+    let persona_data: String = fs::read_to_string(&args.persona)
+        .unwrap_or_else(|_| panic!("The persona {:?} file must be readable.", &args.persona));
+    let config = match serde_json::from_str::<PersonaConfig>(&persona_data) {
         Ok(config) => Some(config),
         Err(err) => {
             println!("Parsing failed: {err}");
             None
         }
     }
-    .expect("The god config should be valid.");
+    .expect("The persona config should be valid.");
 
     let intents = GatewayIntents::GUILD_MESSAGES
         | GatewayIntents::DIRECT_MESSAGES

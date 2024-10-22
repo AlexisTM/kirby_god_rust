@@ -1,7 +1,7 @@
-Ollama Discord bot
+Ollama Persona Discord bot
 ==================
 
-This project allows you to run your **custom** Ollama model **locally** as a Discord bot. It can:
+This project allows you to run your **custom** Ollama persona **locally** as a Discord bot. It can:
 - Mimick a virtual character (see Mavin, Kirby or Pastafari)
 - Provide mental and relationship help (see Samantha), `This doesn't replace professional help`
 - Python code teacher
@@ -20,8 +20,8 @@ curl -fsSL https://ollama.com/install.sh | sh
 ollama pull mistral
 
 # Start your bot
-git clone https://github.com/AlexisTM/ollama-discord-god-rs
-cd ollama-discord-god-rs
+git clone https://github.com/AlexisTM/ollama-discord-persona-rs
+cd ollama-discord-persona-rs
 DISCORD_BOT_TOKEN=DISCORD_BOT_TOKEN ./run.sh marvin
 
 # or manually
@@ -32,14 +32,14 @@ DISCORD_BOT_TOKEN=DISCORD_BOT_TOKEN cargo run --release modelfiles/marvin.json
 Commands
 =============
 
-- `Direct message`: The god replies to the message
-- `/botname prompt`: Slash command to contact a specific god
-- `/clear`: Slash command to remove the god memory
+- `Direct message`: The persona replies to the message
+- `/botname prompt`: Slash command to contact a specific persona
+- `/clear`: Slash command to remove the persona memory
 
 Custom bot
 ===============
 
-To make your custom god, create a modelfile like [marvin.modelfile](modelfiles/marvin.modelfile) (see the [Modelfile format](https://github.com/ollama/ollama/blob/main/docs/modelfile.md)) and prepare your network. To get your modelfile started, use `ollama show [modelname] --modelfile`
+To make your custom persona, create a modelfile like [marvin.modelfile](modelfiles/marvin.modelfile) (see the [Modelfile format](https://github.com/ollama/ollama/blob/main/docs/modelfile.md)) and prepare your network. To get your modelfile started, use `ollama show [modelname] --modelfile`
 
 Then, create a json file with the botname, the model you just created and optional extra generation options to overwrite the PARAMETER you set in the modelfile ([Options available](https://github.com/pepperoni21/ollama-rs/blob/5d6cd76aa4bf073a037a43a4eff70310f07654cd/src/generation/options.rs#L5-L22))
 
@@ -53,7 +53,7 @@ Then, create a json file with the botname, the model you just created and option
 }
 ```
 
-You can then run the god as:
+You can then run the persona as:
 
 ```bash
 ollama create marvin -f modelfiles/marvin.modelfile
