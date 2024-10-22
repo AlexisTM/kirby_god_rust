@@ -8,9 +8,9 @@ use serenity::builder::CreateCommand;
 use serenity::model::application::ResolvedOption;
 use serenity::prelude::RwLock;
 
-use crate::god::God;
+use crate::persona::Persona;
 
-pub async fn run(ctx: &Context, command: &CommandInteraction, god: Arc<RwLock<God>>) {
+pub async fn run(ctx: &Context, command: &CommandInteraction, god: Arc<RwLock<Persona>>) {
     let author_name = if let Some(global_name) = &command.user.global_name {
         global_name.clone()
     } else {

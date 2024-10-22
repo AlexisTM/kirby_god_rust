@@ -1,10 +1,10 @@
 use clap::Parser;
 
 pub mod commands;
-pub mod god;
 pub mod ollama;
+pub mod persona;
 
-use god::{God, GodConfig, GodNursery};
+use persona::{Nursery, Persona, PersonaConfig};
 
 use serenity::all::Interaction;
 use serenity::gateway::ActivityData;
@@ -25,20 +25,20 @@ fn get_name<T>(_: T) -> String {
     std::any::type_name::<T>().to_string()
 }
 
-async fn get_or_create_bot(ctx: &Context, key: u64) -> Arc<RwLock<God>> {
+async fn get_or_create_bot(ctx: &Context, key: u64) -> Arc<RwLock<Persona>> {
     let data = ctx.data.read().await;
     let nursery = data
-        .get::<GodNursery>()
+        .get::<Nursery>()
         .expect("There should be a nursery here.");
 
     let default_god = data
-        .get::<GodConfig>()
+        .get::<PersonaConfig>()
         .expect("There should be a default config in the context.");
 
     let has_bot = nursery.read().await.contains_key(&key);
 
     if !has_bot {
-        let new_god = God::from_config(default_god.clone());
+        let new_god = Persona::from_config(default_god.clone());
         let mut write_nursery = nursery.write().await;
         write_nursery.insert(key, Arc::new(RwLock::new(new_god)));
     }
@@ -74,7 +74,7 @@ impl EventHandler for Handler {
 
     async fn message(&self, ctx: Context, msg: Message) {
         // This is only used for private messages
-        if msg.guild_id == None {
+        if msg.guild_id.is_none() {
             return;
         }
 
@@ -120,7 +120,7 @@ impl EventHandler for Handler {
 
         let data = ctx.data.read().await;
         let config = data
-            .get::<GodConfig>()
+            .get::<PersonaConfig>()
             .expect("There should be god configuration.");
 
         let guild_commands = ctx
@@ -155,7 +155,7 @@ async fn main() {
 
     let god_data: String = fs::read_to_string(&args.god)
         .unwrap_or_else(|_| panic!("The god {:?} file must be readable.", &args.god));
-    let config = match serde_json::from_str::<GodConfig>(&god_data) {
+    let config = match serde_json::from_str::<PersonaConfig>(&god_data) {
         Ok(config) => Some(config),
         Err(err) => {
             println!("Parsing failed: {err}");
@@ -176,8 +176,8 @@ async fn main() {
 
     {
         let mut data = client.data.write().await;
-        data.insert::<GodConfig>(config);
-        data.insert::<GodNursery>(RwLock::new(HashMap::default()));
+        data.insert::<PersonaConfig>(config);
+        data.insert::<Nursery>(RwLock::new(HashMap::default()));
     }
 
     if let Err(why) = client.start().await {

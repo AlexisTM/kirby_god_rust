@@ -12,24 +12,24 @@ use std::sync::Arc;
 
 const MAX_RECOLLECTIONS: usize = 20;
 
-// The nursery allows to find the god we are interested in, in all those servers
-pub struct GodNursery;
-impl TypeMapKey for GodNursery {
-    type Value = RwLock<HashMap<u64, Arc<RwLock<God>>>>;
+// The nursery allows to find the persona we are interested in, in all those servers
+pub struct Nursery;
+impl TypeMapKey for Nursery {
+    type Value = RwLock<HashMap<u64, Arc<RwLock<Persona>>>>;
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GodConfig {
+pub struct PersonaConfig {
     pub model: String,
     pub botname: String,
     pub options: GenerationOptions,
 }
 
-impl TypeMapKey for GodConfig {
-    type Value = GodConfig;
+impl TypeMapKey for PersonaConfig {
+    type Value = PersonaConfig;
 }
 
-impl Default for GodConfig {
+impl Default for PersonaConfig {
     fn default() -> Self {
         let options = GenerationOptions::default()
             .num_ctx(4096)
@@ -50,21 +50,21 @@ impl Default for GodConfig {
 
 // trait Bot, for God
 #[derive(Debug)]
-pub struct God {
+pub struct Persona {
     pub brain: OllamaAI,
-    pub config: GodConfig,
+    pub config: PersonaConfig,
     // The actual live memory of the bot.
     recollections: Vec<ChatMessage>,
 }
 
-impl Default for God {
+impl Default for Persona {
     fn default() -> Self {
-        let config = GodConfig::default();
+        let config = PersonaConfig::default();
         Self::from_config(config)
     }
 }
 
-impl God {
+impl Persona {
     pub fn get_prompt(&self, author: &str, prompt: &str) -> Vec<ChatMessage> {
         let mut prompts = self.recollections.clone();
         prompts.push(ChatMessage::user(format!("{author}: {prompt}").to_owned()));
@@ -97,15 +97,15 @@ impl God {
         self.recollections.clear();
     }
 
-    pub fn from_config(config: GodConfig) -> God {
-        God {
+    pub fn from_config(config: PersonaConfig) -> Persona {
+        Persona {
             brain: OllamaAI::new(&config.model, config.options.clone()),
             recollections: Vec::new(),
             config,
         }
     }
 
-    pub fn update_from_config(&mut self, config: GodConfig) {
+    pub fn update_from_config(&mut self, config: PersonaConfig) {
         self.brain = OllamaAI::new(&config.model, config.options.clone());
         self.recollections = Vec::new();
         self.config = config;
@@ -116,7 +116,7 @@ impl God {
     }
 
     pub fn import_json(val: &str) -> Option<Self> {
-        if let Ok(config) = serde_json::from_str::<GodConfig>(val) {
+        if let Ok(config) = serde_json::from_str::<PersonaConfig>(val) {
             Some(Self::from_config(config))
         } else {
             None
