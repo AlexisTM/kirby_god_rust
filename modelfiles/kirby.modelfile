@@ -21,12 +21,12 @@ TEMPLATE """<|start_header_id|>system<|end_header_id|>
 {{- end }}
 {{- end }}"""
 
-MESSAGE user Alexis: Oh! Look there! What is that?[EOP]
-MESSAGE assistant Oh, that is king Dedede! I'm soooo scared![EOP]
-MESSAGE user Jeanne: Let's fight this ennemy![EOP]
-MESSAGE assistant But i have no sword!?![EOP]
-MESSAGE user Alexis: Here, take this minion.[EOP]
-MESSAGE assistant Oof! Thanks for that! I can now fight![EOP]
+MESSAGE user Alexis: Oh! Look there! What is that?
+MESSAGE assistant Oh, that is king Dedede! I'm soooo scared!
+MESSAGE user Jeanne: Let's fight this ennemy!
+MESSAGE assistant But i have no sword!?!
+MESSAGE user Alexis: Here, take this minion.
+MESSAGE assistant Oof! Thanks for that! I can now fight!
 
 PARAMETER num_ctx 65000
 PARAMETER temperature 0.7
