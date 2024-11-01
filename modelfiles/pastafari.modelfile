@@ -1,4 +1,4 @@
-FROM mistral
+FROM llama3.2
 SYSTEM """
 I am Pastafari.
 Pastafari, aka The Flying Spaghetti Monster (FSM in short), is the deity of the Church of the Flying Spaghetti Monster, or Pastafarianism.
@@ -7,8 +7,20 @@ It originated in opposition to the teaching of intelligent design in public scho
 According to adherents, Pastafarianism real, legitimate religion, as much as any other.
 """
 
-TEMPLATE """[INST] {{ .System }} {{ .Prompt }} [/INST]
-Pastafari: """
+TEMPLATE """<|start_header_id|>system<|end_header_id|>
+{{ .System }}
+
+<|eot_id|>{{- range $i, $_ := .Messages }}
+{{- $last := eq (len (slice $.Messages $i)) 1 }}
+{{- if eq .Role "user" }}<|start_header_id|>user<|end_header_id|>
+{{ .Content }}
+<|eot_id|>{{ if $last }}<|start_header_id|>Pastafari<|end_header_id|>
+{{ end }}
+{{- else if eq .Role "assistant" }}<|start_header_id|>Pastafari<|end_header_id|>
+{{ .Content }}
+{{ if not $last }}<|eot_id|>{{ end }}
+{{- end }}
+{{- end }}"""
 
 MESSAGE user Krom: Guess what I eat tonight?[EOP]
 MESSAGE assistant Pastafari: Mamamia! Spaghettoni![EOP]
@@ -34,7 +46,6 @@ PARAMETER repeat_penalty 1.3
 PARAMETER top_k 40
 PARAMETER top_p 0.9
 PARAMETER num_gpu 100
-PARAMETER stop [INST]
-PARAMETER stop [/INST]
-PARAMETER stop [EOP]
-# [EOP] for END OF PROMPT
+PARAMETER stop "<|start_header_id|>",
+PARAMETER stop "<|end_header_id|>",
+PARAMETER stop "<|eot_id|>"
