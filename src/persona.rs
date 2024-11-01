@@ -10,8 +10,6 @@ use std::clone::Clone;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-const MAX_RECOLLECTIONS: usize = 20;
-
 // The nursery allows to find the persona we are interested in, in all those servers
 pub struct Nursery;
 impl TypeMapKey for Nursery {
@@ -52,8 +50,6 @@ impl Default for PersonaConfig {
 pub struct Persona {
     pub brain: OllamaAI,
     pub config: PersonaConfig,
-    // The actual live memory of the bot.
-    recollections: Vec<ChatMessage>,
 }
 
 impl Default for Persona {
@@ -65,22 +61,7 @@ impl Default for Persona {
 
 impl Persona {
     pub fn get_prompt(&self, author: &str, prompt: &str) -> Vec<ChatMessage> {
-        let mut prompts = self.recollections.clone();
-        prompts.push(ChatMessage::user(format!("{author}: {prompt}").to_owned()));
-        prompts
-    }
-
-    pub fn set_prompt_response(&mut self, author: &str, prompt: &str, response: &str) {
-        self.recollections.push(ChatMessage::user(
-            format!("{author}: {}", prompt).to_owned(),
-        ));
-        self.recollections
-            .push(ChatMessage::assistant(response.to_owned()));
-
-        if self.recollections.len() > (MAX_RECOLLECTIONS * 2) {
-            self.recollections.remove(0);
-            self.recollections.remove(0);
-        }
+        vec![ChatMessage::user(format!("{author}: {prompt}").to_owned())]
     }
 
     pub fn set_botname(&mut self, name: &str) {
@@ -92,21 +73,19 @@ impl Persona {
     }
 
     // Remove recollections
-    pub fn clear(&mut self) {
-        self.recollections.clear();
+    pub fn clear(&mut self, history_id: &str) {
+        self.brain.ollama.clear_messages_for_id(history_id);
     }
 
     pub fn from_config(config: PersonaConfig) -> Persona {
         Persona {
             brain: OllamaAI::new(&config.model, config.options.clone()),
-            recollections: Vec::new(),
             config,
         }
     }
 
     pub fn update_from_config(&mut self, config: PersonaConfig) {
         self.brain = OllamaAI::new(&config.model, config.options.clone());
-        self.recollections = Vec::new();
         self.config = config;
     }
 
@@ -121,16 +100,22 @@ impl Persona {
             None
         }
     }
-    pub fn get_config(&self) -> String {
-        let recollections: String = self
-            .recollections
-            .iter()
-            .map(|x| match x.role {
-                MessageRole::System => format!("System: {}\\nn", x.content),
-                MessageRole::Assistant => format!("bot: {}\n", x.content),
-                MessageRole::User => format!("{}\n", x.content),
-            })
-            .collect();
+    pub fn get_config(&mut self, history_id: &str) -> String {
+        let recollections = self.brain.ollama.get_messages_history(history_id);
+        let recollections_str = if let Some(recollections) = recollections {
+            let recollections: String = recollections
+                .iter()
+                .map(|x| match x.role {
+                    MessageRole::System => format!("System: {}\\nn", x.content),
+                    MessageRole::Assistant => format!("bot: {}\n", x.content),
+                    MessageRole::User => format!("{}\n", x.content),
+                })
+                .collect();
+            recollections
+        } else {
+            "".to_owned()
+        };
+
         format!(
             "{botname} config.
 ===========
@@ -138,7 +123,7 @@ Recollections
 ---------------
 {recollections}\n",
             botname = self.config.botname,
-            recollections = recollections,
+            recollections = recollections_str,
         )
     }
 }

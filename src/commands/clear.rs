@@ -7,7 +7,8 @@ use serenity::prelude::RwLock;
 use crate::persona::Persona;
 
 pub async fn run(ctx: &Context, command: &CommandInteraction, persona: Arc<RwLock<Persona>>) {
-    persona.write().await.clear();
+    let history_id = command.channel_id.to_string();
+    persona.write().await.clear(&history_id);
     if let Err(why) = command
         .create_response(
             &ctx.http,

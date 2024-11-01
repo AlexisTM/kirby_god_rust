@@ -97,17 +97,18 @@ impl EventHandler for Handler {
 
         let prompt = { persona.read().await.get_prompt(&author_name, prompt_slice) };
 
-        let response = { persona.read().await.brain.request(&prompt).await };
+        let history_id = key.to_string();
+        let response = {
+            persona
+                .write()
+                .await
+                .brain
+                .request(&prompt, &history_id)
+                .await
+        };
         if let Some(response) = response {
             if let Err(why) = msg.channel_id.say(&ctx.http, &response.content).await {
                 println!("Error sending message: {:?}", why);
-            }
-            {
-                persona.write().await.set_prompt_response(
-                    &author_name,
-                    prompt_slice,
-                    &response.content,
-                );
             }
         }
     }

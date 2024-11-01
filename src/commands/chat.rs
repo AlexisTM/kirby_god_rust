@@ -21,9 +21,17 @@ pub async fn run(ctx: &Context, command: &CommandInteraction, persona: Arc<RwLoc
         ..
     }) = command.data.options().first()
     {
+        let history_id = command.channel_id.to_string();
         let _ = command.defer(&ctx.http).await;
         let prompt = { persona.read().await.get_prompt(&author_name, prompt_slice) };
-        let response = { persona.read().await.brain.request(&prompt).await };
+        let response = {
+            persona
+                .write()
+                .await
+                .brain
+                .request(&prompt, &history_id)
+                .await
+        };
         if let Some(response) = response {
             let content = format!(
                 "\nFrom **{author_name}:**```{prompt_slice}```**{}:**```{}```",
@@ -33,12 +41,6 @@ pub async fn run(ctx: &Context, command: &CommandInteraction, persona: Arc<RwLoc
             let builder = EditInteractionResponse::new().content(content);
             if let Err(why) = command.edit_response(&ctx.http, builder).await {
                 println!("Cannot respond to slash command: {why}");
-            } else {
-                persona.write().await.set_prompt_response(
-                    &author_name,
-                    prompt_slice,
-                    &response.content,
-                );
             }
         } else {
             println!("Error with ollama");
