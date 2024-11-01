@@ -28,5 +28,5 @@ futures = "0.3"
 async-trait = "0.1"
 const_format = "0.2"
 once_cell = "1"
-ollama-rs = "0.2"
+ollama-rs = { version = "0.2", features = ["chat-history", "function-calling"] }
 clap = { version = "4", features = ["derive"] }
