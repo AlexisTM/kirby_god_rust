@@ -8,9 +8,9 @@ use serenity::builder::CreateCommand;
 use serenity::model::application::ResolvedOption;
 use serenity::prelude::RwLock;
 
-use crate::god::God;
+use crate::persona::Persona;
 
-pub async fn run(ctx: &Context, command: &CommandInteraction, god: Arc<RwLock<God>>) {
+pub async fn run(ctx: &Context, command: &CommandInteraction, persona: Arc<RwLock<Persona>>) {
     let author_name = if let Some(global_name) = &command.user.global_name {
         global_name.clone()
     } else {
@@ -22,19 +22,19 @@ pub async fn run(ctx: &Context, command: &CommandInteraction, god: Arc<RwLock<Go
     }) = command.data.options().first()
     {
         let _ = command.defer(&ctx.http).await;
-        let prompt = { god.read().await.get_prompt(&author_name, prompt_slice) };
-        let response = { god.read().await.brain.request(&prompt).await };
+        let prompt = { persona.read().await.get_prompt(&author_name, prompt_slice) };
+        let response = { persona.read().await.brain.request(&prompt).await };
         if let Some(response) = response {
             let content = format!(
                 "\nFrom **{author_name}:**```{prompt_slice}```**{}:**```{}```",
-                god.read().await.get_botname(),
+                persona.read().await.get_botname(),
                 response.content,
             );
             let builder = EditInteractionResponse::new().content(content);
             if let Err(why) = command.edit_response(&ctx.http, builder).await {
                 println!("Cannot respond to slash command: {why}");
             } else {
-                god.write().await.set_prompt_response(
+                persona.write().await.set_prompt_response(
                     &author_name,
                     prompt_slice,
                     &response.content,

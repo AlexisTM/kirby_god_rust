@@ -9,4 +9,5 @@ fi
 
 BASEDIR=$(dirname $0)
 ollama create ${1} -f ${BASEDIR}/modelfiles/${1}.modelfile
-cargo run --release ${BASEDIR}/gods/${1}.json
+cargo run --release ${BASEDIR}/personas/${1}.json
+

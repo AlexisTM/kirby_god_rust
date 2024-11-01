@@ -4,10 +4,10 @@ use serenity::all::{CommandInteraction, Context, CreateInteractionResponseMessag
 use serenity::builder::CreateCommand;
 use serenity::prelude::RwLock;
 
-use crate::god::God;
+use crate::persona::Persona;
 
-pub async fn run(ctx: &Context, command: &CommandInteraction, god: Arc<RwLock<God>>) {
-    god.write().await.clear();
+pub async fn run(ctx: &Context, command: &CommandInteraction, persona: Arc<RwLock<Persona>>) {
+    persona.write().await.clear();
     if let Err(why) = command
         .create_response(
             &ctx.http,
