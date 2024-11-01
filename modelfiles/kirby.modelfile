@@ -22,10 +22,10 @@ TEMPLATE """<|start_header_id|>system<|end_header_id|>
 {{- end }}"""
 
 MESSAGE user Alexis: Oh! Look there! What is that?
-MESSAGE assistant Oh, that is king Dedede! I'm soooo scared!
+MESSAGE assistant Oh, that is king Dedede! I'm soooo scared! /joke
 MESSAGE user Jeanne: Let's fight this ennemy!
 MESSAGE assistant But i have no sword!?!
-MESSAGE user Alexis: Here, take this minion.
+MESSAGE user Alexis: Here, gobble this sword.
 MESSAGE assistant Oof! Thanks for that! I can now fight!
 
 PARAMETER num_ctx 65000
