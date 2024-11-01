@@ -12,7 +12,7 @@ Quickstart
 
 ```
 # Use WSL on Windows, skip on Linux/MacOS
-wsl --install Ubuntu-22.04
+wsl --install Ubuntu-24.04
 wsl
 
 # Install Ollama and pre-pull mistral
